@@ -205,6 +205,18 @@
         }
       }
 
+      &.is-disabled {
+        @apply cursor-not-allowed border-zinc-200 bg-zinc-100 hover:border-zinc-200 hover:bg-zinc-100;
+
+        .drop-icon {
+          @apply bg-zinc-200 text-zinc-400;
+        }
+      }
+
+      &.is-disabled:not(.is-dragging):hover .drop-icon {
+        @apply bg-zinc-200 text-zinc-400;
+      }
+
       .drop-input {
         @apply absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10;
       }
