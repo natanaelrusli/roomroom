@@ -4,7 +4,7 @@ import {
     REDIRECT_DELAY_MS,
 } from "app/lib/constant"
 import { CheckCircle2, ImageIcon, UploadIcon } from "lucide-react"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useOutletContext } from "react-router"
 
 function processFile(file: File): Promise<string> {
@@ -32,27 +32,46 @@ const Upload = ({ onComplete }: UploadProps) => {
 
     const { isSignedIn } = useOutletContext<AuthContext>()
 
+    useEffect(() => {
+        return () => {
+            if (progressIntervalRef.current) {
+                clearInterval(progressIntervalRef.current)
+                progressIntervalRef.current = null
+            }
+        }
+    }, [])
+
     const handleFiles = (files: FileList | null) => {
         if (!isSignedIn || !files?.length) return
         const first = files[0]
         if (!/\.(jpg|jpeg|png)$/i.test(first.name)) return
         setFile(first)
         setProgress(0)
-        processFile(first).then((base64) => {
-            progressIntervalRef.current = setInterval(() => {
-                setProgress((p) => {
-                    const next = Math.min(p + PROGRESS_STEP, 100)
-                    if (next >= 100 && progressIntervalRef.current) {
-                        clearInterval(progressIntervalRef.current)
-                        progressIntervalRef.current = null
-                        setTimeout(() => {
-                            onComplete?.(base64)
-                        }, REDIRECT_DELAY_MS)
-                    }
-                    return next
-                })
-            }, PROGRESS_INTERVAL_MS)
-        })
+        processFile(first)
+            .then((base64) => {
+                progressIntervalRef.current = setInterval(() => {
+                    setProgress((p) => {
+                        const next = Math.min(p + PROGRESS_STEP, 100)
+                        if (next >= 100 && progressIntervalRef.current) {
+                            clearInterval(progressIntervalRef.current)
+                            progressIntervalRef.current = null
+                            setTimeout(() => {
+                                onComplete?.(base64)
+                            }, REDIRECT_DELAY_MS)
+                        }
+                        return next
+                    })
+                }, PROGRESS_INTERVAL_MS)
+            })
+            .catch((err) => {
+                if (progressIntervalRef.current) {
+                    clearInterval(progressIntervalRef.current)
+                    progressIntervalRef.current = null
+                }
+                setProgress(0)
+                setFile(null)
+                console.error("Upload processFile failed:", err)
+            })
     }
 
     const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
