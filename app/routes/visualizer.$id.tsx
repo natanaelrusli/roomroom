@@ -1,5 +1,13 @@
 import { useLocation, useParams } from 'react-router'
 import { useState, useEffect } from 'react'
+import type { Route } from '../+types/root';
+
+export function meta({ }: Route.MetaArgs) {
+  return [
+    { title: "RoomRoom - Visualizer" },
+    { name: "description", content: "Visualizer" },
+  ];
+}
 
 const VisualizerId = () => {
     const { id } = useParams()

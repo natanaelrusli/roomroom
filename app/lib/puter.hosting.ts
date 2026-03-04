@@ -62,7 +62,15 @@ export const uploadImageToHosting = async ({
     const contentType = resolved.contentType || resolved.blob.type || "";
 
     const ext = getImageExtension(contentType, url);
-    const dir = `projects/${projectId}`;
+
+    // Sanitize projectId: allow only alphanumeric, dash, and underscore
+    const safeProjectId = projectId.replace(/[^a-zA-Z0-9-_]/g, "");
+    if (!safeProjectId) {
+      console.warn("Invalid projectId after sanitization");
+      return null;
+    }
+
+    const dir = `projects/${safeProjectId}`;
     const filePath = `${dir}/${label}.${ext}`;
 
     const uploadFile = new File([resolved.blob], `${label}.${ext}`, {
